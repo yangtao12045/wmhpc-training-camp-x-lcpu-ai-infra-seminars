@@ -57,6 +57,6 @@ gpu强大的计算能力源于其大规模并行的高吞吐，严格串行程�
 | 执行层次            | 软件含义                              | 对应硬件                                        | 直接可用的存储                             | 同步与通信手段                                                                                 |
 | --------------- | --------------------------------- | ------------------------------------------- | ----------------------------------- | --------------------------------------------------------------------------------------- |
 | **thread**      | kernel 的最小执行单位                    | 计算单元上的一个 lane                               | 自己的寄存器                              | 自身天然有序                                                                                  |
-| **warp**        | **32 个 thread 组成的 SIMT 执行/调度组**   | **SM 中由 warp scheduler 调度的一组 lanes**        | 各 thread 自己的寄存器；**没有独立的 warp 共享存储** | `__syncwarp()`；shuffle / vote 等 warp-level primitive                                    |
-| **block / CTA** | 一组能够相互协作的 threads，由若干 warp 组成     | **整个 block 驻留在一个 SM 上**；一个 SM 可同时驻留多个 block | **shared memory** + 各 thread 的寄存器   | `__syncthreads()`；shared memory；block-level atomics / cooperative groups                |
-| **grid**        | 一次 kernel launch 产生的**全部 blocks** | 分布到整个 GPU 的多个 SM 上执行                        | **global memory**（所有 block 都能访问）    | 普通 kernel 中一般**没有任意 block 间全局 barrier**；通过 global memory / atomics 通信，kernel 边界可作为全局同步点 |
+| **warp**        | 32个thread组成的单元   | SM由scheduler调度的32个lanes        | 各thread的寄存器 | __syncwarp()，shuffle/vote等primitive                                    |
+| **block / CTA** | 一组threads，由若干warp组成     | 整个block驻留在SM上 | shared memory  | __syncthreads()，shared memory，atomics                |
+| **grid**        | 全部 blocks的集合 | 分布到多个SM                        | global memory    | global memory，atomics通信 |
