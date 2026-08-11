@@ -19,3 +19,15 @@
 ## 关于 AI 使用
 
 policy 见 [CLAUDE.md](CLAUDE.md)（[AGENTS.md](AGENTS.md) 内容相同，供其他工具读取）。AI 可以帮你理解，但不能替你实现。
+
+0.2
+```bash
+GPU 型号            : NVIDIA GeForce RTX 5090
+compute capability  : 12.0
+SM 数量             : 170
+warp 大小           : 32
+shared mem / block  : 49152
+max threads / SM    : 1536
+global mem          : 33668857856
+max threads / block : 1024
+```
