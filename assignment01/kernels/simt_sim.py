@@ -18,6 +18,63 @@ contract: 实现 run(program) -> (regs, cycles)
 通过 pytest tests/test_simt_sim.py 即为完成。
 """
 
+def add(regs,p,ac):
+    for i in range(32):
+        if ac[i]:
+            regs[i]+=p[1]
+    return regs
+
+def mul(regs,p,ac):
+    for i in range(32):
+        if ac[i]:
+            regs[i]*=p[1]
+    return regs
+
+def if_it(regs,p,cycles,ac):
+    ac1=[0]*32
+    ac2=[0]*32
+    flag1=0
+    flag2=0
+    for i in range(32):
+        if(regs[i]<p[1] and ac[i]):
+            ac1[i]=1
+            flag1=1
+        elif(regs[i]>=p[1] and ac[i]):
+            ac2[i]=1
+            flag2=1
+    if(flag1):
+        for p1 in p[2]:
+            if p1[0]=="add":
+                regs=add(regs,p1,ac1)
+                cycles+=1
+            elif p1[0]=="mul":
+                regs=mul(regs,p1,ac1)
+                cycles+=1
+            else:
+                regs,cycles=if_it(regs,p1,cycles,ac1)
+    if(flag2):
+        for p1 in p[3]:
+            if p1[0]=="add":
+                regs=add(regs,p1,ac2)
+                cycles+=1
+            elif p1[0]=="mul":
+                regs=mul(regs,p1,ac2)
+                cycles+=1
+            else:
+                regs,cycles=if_it(regs,p1,cycles,ac2)
+    return (regs,cycles)
 
 def run(program):
-    raise NotImplementedError("从这里开始写")
+    cycles=0
+    regs=list(range(32))
+    ac=[1]*32
+    for p in program:
+        if p[0]=="add":
+            regs=add(regs,p,ac)
+            cycles+=1
+        elif p[0]=="mul":
+            regs=mul(regs,p,ac)
+            cycles+=1
+        else:
+            regs,cycles=if_it(regs,p,cycles,ac)
+    return (regs,cycles)
