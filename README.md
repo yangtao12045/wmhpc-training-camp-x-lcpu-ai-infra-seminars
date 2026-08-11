@@ -43,3 +43,20 @@ max threads / block : 1024
 (d)“算力 1000 TFLOPS”意味着每次运算的延迟是 10−15 秒。
 错，与a相似，tflops指的是吞吐能力，并非反映单次运算能力
 ```
+
+1.2
+```bash
+Session 1 讲座里提过“N 方过百万”这个例子。总计算量1012 FLOP在当代GPU上的运算时间
+大概是毫秒级，那为什么一个严格在线的串行算法仍然做不到几秒内跑完？（从“延迟”和“吞吐”
+的角度考虑）
+gpu强大的计算能力源于其大规模并行的高吞吐，严格串行程序无法发挥gpu优势，而gpu对单次计算的延迟较高且在串行背景下无法被隐藏，所以做不到几秒内跑完
+```
+
+
+1.3
+| 执行层次            | 软件含义                              | 对应硬件                                        | 直接可用的存储                             | 同步与通信手段                                                                                 |
+| --------------- | --------------------------------- | ------------------------------------------- | ----------------------------------- | --------------------------------------------------------------------------------------- |
+| **thread**      | kernel 的最小执行单位                    | 计算单元上的一个 lane                               | 自己的寄存器                              | 自身天然有序                                                                                  |
+| **warp**        | **32 个 thread 组成的 SIMT 执行/调度组**   | **SM 中由 warp scheduler 调度的一组 lanes**        | 各 thread 自己的寄存器；**没有独立的 warp 共享存储** | `__syncwarp()`；shuffle / vote 等 warp-level primitive                                    |
+| **block / CTA** | 一组能够相互协作的 threads，由若干 warp 组成     | **整个 block 驻留在一个 SM 上**；一个 SM 可同时驻留多个 block | **shared memory** + 各 thread 的寄存器   | `__syncthreads()`；shared memory；block-level atomics / cooperative groups                |
+| **grid**        | 一次 kernel launch 产生的**全部 blocks** | 分布到整个 GPU 的多个 SM 上执行                        | **global memory**（所有 block 都能访问）    | 普通 kernel 中一般**没有任意 block 间全局 barrier**；通过 global memory / atomics 通信，kernel 边界可作为全局同步点 |
