@@ -60,3 +60,25 @@ gpu强大的计算能力源于其大规模并行的高吞吐，严格串行程�
 | **warp**        | 32个thread组成的单元   | SM由scheduler调度的32个lanes        | 各thread的寄存器 | __syncwarp()，shuffle/vote等primitive                                    |
 | **block / CTA** | 一组threads，由若干warp组成     | 整个block驻留在SM上 | shared memory  | __syncthreads()，shared memory，atomics                |
 | **grid**        | 全部 blocks的集合 | 分布到多个SM                        | global memory    | global memory，atomics通信 |
+
+1.4
+```bash
+SIMD 与 SIMT 的区别？另：判断正误——Nvidia GPU 在 Volta 之后每个线程有独立的program
+counter，所以 branch divergence 不再有性能代价。
+SIMD与向量化指令关系密切，可理解为一条指令操作多个数据元素，SIMT是多个独立线程处理不同数据。SIMD基本单位是向量而SIMT基本单位是线程，SIMT由于本质是线程，允许不同控制流，SIMD通常不能很好地处理不同控制流。
+错，在wrap内一般用掩码处理分支，不同分支不能完全利用资源，branch divergence仍有很大代价
+```
+
+1.5
+| 配置                             |   耗时 (ms) |  ns / 元素 |
+| ------------------------------ | --------: | -------: |
+| CPU 单线程                        |     9.875 |     2.35 |
+| GPU `<<<1, 1>>>`               |   136.604 |    32.57 |
+| GPU `<<<1, 256>>>`             |     2.327 |     0.55 |
+| GPU 铺满 grid `<<<16384, 256>>>` | **0.024** | **0.01** |
+```bash
+回答：(a)GPU单线程为什么比CPU慢这么多？(b)从单block到铺满
+grid 的提速，说明 GPU 加速计算靠的是什么？
+(a)cpu通常有更强的单线程能力，单线程延迟显著低于gpu
+(b)gpu的能力主要靠大规模计算的高吞吐隐藏延迟
+```
