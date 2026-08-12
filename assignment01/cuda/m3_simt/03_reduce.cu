@@ -39,11 +39,51 @@
 #define BLOCK 256
 
 __global__ void reduce_interleaved(const float *in, float *out) {
-    // TODO：从这里开始写（交错配对版本）
+    __shared__ float buf[BLOCK];
+    int idx=blockDim.x*blockIdx.x+threadIdx.x;
+    int tid=threadIdx.x;
+    buf[tid]=in[idx];
+    __syncthreads();
+    for(int s=1;s<=blockDim.x>>1;s<<=1){
+        if(tid%(2*s)==0) buf[tid]+=buf[tid+s];
+        __syncthreads();
+    }
+    if(tid==0) out[blockIdx.x]=buf[0];
 }
 
 __global__ void reduce_contiguous(const float *in, float *out) {
-    // TODO：从这里开始写（连续配对版本）
+    __shared__ float buf[BLOCK];
+    int idx=blockDim.x*blockIdx.x+threadIdx.x;
+    int tid=threadIdx.x;
+    buf[tid]=in[idx];
+    __syncthreads();
+    for(int s=blockDim.x>>1;s>0;s>>=1){
+        if(tid<s) buf[tid]+=buf[tid+s];
+        __syncthreads();
+    }
+    if(tid==0) out[blockIdx.x]=buf[0];
+}
+
+__global__ void reducev3(const float *in,float *out){
+    __shared__ float shm[32];
+    int idx=blockDim.x*blockIdx.x+threadIdx.x;
+    int warpid=threadIdx.x/32;
+    int laneid=threadIdx.x%32;
+    float val=in[idx];
+    #pragma unroll
+    for(int s=16;s>0;s>>=1){
+        val+=__shfl_down_sync(0xFFFFFFFF,val,s);
+    }
+    if(laneid==0) shm[warpid]=val;
+    __syncthreads();
+    if(warpid==0){
+        int warpNum=blockDim.x/32;
+        val=(laneid<warpNum)?shm[laneid]:0.0f;
+        for(int s=16;s>0;s>>=1){
+            val+=__shfl_down_sync(0xFFFFFFFF,val,s);
+        }
+        if(laneid==0) out[blockIdx.x]=val;
+    }
 }
 
 // ---------------- 以下是判测与计时，不要修改 ----------------
