@@ -188,5 +188,7 @@ __syncthreads 只能同步本 block 内的 threads，那需要全 grid 同步时
 | **shared**        | block内线程                | block                 | 片上                    | 程序员                |
 | **global**        | 所有线程 | 程序                | 片外                    | 程序员 |
 | **constant**      | 所有线程   |  程序 | 片外 | 程序员         |
-| **L1 / L2 cache** | L1在blcok内线程；L2所有线程       | 永久           | 片上                    | 硬件                 |
+| **L1 / L2 cache** | L1在blcok内线程，L2所有线程       | 永久           | 片上                    | 硬件                 |
+
+
 
