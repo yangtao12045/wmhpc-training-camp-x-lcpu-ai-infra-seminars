@@ -140,3 +140,40 @@ bug在于每个block线程超上限
 的scalable programming model 有什么关系？
 不可以，必须block间无依赖。这样的编程前提正是scalable programming model的基础
 ```
+
+3.1
+```bash
+设blockDim = (8, 8, 1)。
+(a) threadIdx = (3, 5, 0) 的线性编号是多少？它在第几个 warp、warp 内第几个 lane？
+线性编号是43，第二个warp(warp1)，第12个lane(lane11)
+(b) 这个 block 一共占多少个 warp？
+一共2个lane
+(c) 若 blockDim = (33, 1, 1)，占几个 warp？这样配置浪费在哪里？
+需要两个wrap，有一个wrap只有1个线程，利用率浪费
+```
+
+3.2
+```bash
+warp 内分支 (tid % 2)    :    0.388 ms
+按 warp 分支 (tid/32 % 2):    0.200 ms
+比值: 1.94
+请解释实测比值，并回答——若两个分支的计算量一大一小，按thread 编号奇偶分的 kernel
+和按warp 边界对齐分的kernel 的运行时间分别由什么决定？
+按边界分没有divergence，按奇偶分每个wrap都有divergence
+按thread 编号奇偶分的 kernel由总计算量决定，按warp 边界对齐分的kernel由较大计算量的决定
+```
+
+3.3
+```bash
+(a) 为什么注释掉 sync 后代码不能正确地运行？(b) (Optional) 注释掉 sync 后，翻转后的数
+组错的位置比较随机，但是有些位置一直是对的，试解释原因。（tip: 算一算t与255−t有没有
+可能落在同一个warp）
+必须要同步确保不同wrap都完成了写入buf的过程才能确保后续写入buf内值正确。
+t与255−t不可能落进同一个wrap，所以可能是wrap的执行顺序根据硬件特点有一定规律
+```
+
+3.4
+```bash
+__syncthreads 只能同步本 block 内的 threads，那需要全 grid 同步时，标准做法是什么？
+把需要全 grid 同步的两个阶段拆成两个 kernel，或使用cooperative groups
+```
