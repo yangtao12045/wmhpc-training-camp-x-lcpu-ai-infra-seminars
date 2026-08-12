@@ -82,3 +82,45 @@ grid 的提速，说明 GPU 加速计算靠的是什么？
 (a)cpu通常有更强的单线程能力，单线程延迟显著低于gpu
 (b)gpu的能力主要靠大规模计算的高吞吐隐藏延迟
 ```
+
+2.2
+```bash
+为下列五个场景选择正确的修饰符（如__global__等）。
+(a) 在 GPU 上执行、由CPU侧启动的kernel 函数。
+__global__
+(b) 只会被 kernel 调用的辅助函数。
+__device__
+(c) host 和 device 代码都要调用的小工具函数。
+__host__ __device__
+(d) 整个 kernel 运行期间不变、所有线程都要读的系数表。
+__constant__
+(e) block 内线程共享的暂存数组。
+__shared__
+```
+
+2.3
+```bash
+搬运 + kernel + 读回: 106.4 ms
+搬运 + kernel + 读回: 95.3 ms
+：(a)kernel 启动之后、CPU读结果之前，为什么必须有一次同步？在原
+先的版本里这次同步发生在哪个调用里？
+cpu在kernel launch后会不阻塞继续执行接下来的指令，因此必须同步确保kernel已完成
+(b)对比两版“搬运+kernel+读回”的耗时，分析差距
+的原因（谁快谁慢都有可能，与使用的卡有关）。
+Unified Memory更快，可能是按需迁移页面的开销比显式管理更小
+```
+
+2.4
+```bash
+(a) vectorAdd<<<...>>>(...) 这条语句返回时，kernel 一定已经执行完毕。
+错，cpu launch后不会阻塞，会继续执行后续指令
+(b) 同一个 stream 里，cudaMemcpy（device 到 host）会等它前面的 kernel 全部完成后才开始拷
+贝。
+(c) kernel 内部的非法访存，会在启动语句处同步地报出来。
+错，异步的，不会同步报出来
+```
+
+2.5
+```bash
+bug在于每个block线程超上限
+```
