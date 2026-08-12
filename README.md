@@ -124,3 +124,19 @@ Unified Memory更快，可能是按需迁移页面的开销比显式管理更小
 ```bash
 bug在于每个block线程超上限
 ```
+
+2.7
+```bash
+然后请回答——这种写法的价值在哪里？launch 只有 16384 个线程时，性能上要付出什么代
+价？
+价值在于无论n多大kernel都能正常运行，提高线程复用，代价是并行能力降低，可能无法充分利用计算资源
+```
+
+2.8
+```bash
+(a) 顺序由谁决定？
+由调度器决定，不能保证block的执行顺序
+(b)程序的正确性可以依赖block的执行顺序吗？这条限制和Guide1.1说
+的scalable programming model 有什么关系？
+不可以，必须block间无依赖。这样的编程前提正是scalable programming model的基础
+```
