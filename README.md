@@ -286,3 +286,25 @@ rm bin/m5_async/01_timing_trap
 | **数据分工** | thread 根据全局下标决定自己处理哪些 element | block根据bid处理一个 tile                             | program 根据pid生成offsets，处理一块数据           |
 | **边界处理** | `if (i < n)`                  | 越界 load可padding，store 越界丢弃 | mask = offsets < n，传给tl.load/tl.store|
 
+6.3
+```bash
+仍看上面这段代码。(a)“每个线程对应哪个/些元素”由谁决定？(b)列出一些在CUDASIMT版
+向量加法里一定会出现、这里完全没体现出的概念。
+由编译器决定
+threadIdx，blockDim，warp等
+```
+
+
+7.2
+```bash
+改完回答——与Module 2 里改 CUDA kernel 相比，这次的改动主要集中在 kernel 的什么部
+分？主体代码为什么一行都不用动？
+改动在计算方式，因为tile抽象将数据划分与计算分离，所以主体代码一行都不用改
+```
+
+7.4
+```bash
+填完想一想：2.6的四个空——行号、列号、边界保护、grid尺寸——哪些在这里还有对应？没
+有对应的那个去哪了？
+行号列号grid尺寸仍有对应，边界处理和逐线程行列已经在copy中封装了
+```
