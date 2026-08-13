@@ -240,3 +240,52 @@ priv : PASS  平均 0.0145 ms  (1160.24 GB/s)
 高occupancy能提供足够多的线程上下文供SM隐藏访存延迟
 说明50%occupancy已经足够隐藏延迟，所以没有下降，但16.7%occupancy不足以隐藏延迟，所以大幅度下降
 ```
+
+5.1
+```bash
+./bin/m5_async/01_timing_trap
+host 计时、不等 GPU :     0.0066 ms
+host 计时、等 GPU   :     0.0676 ms
+cudaEvent 计时      :     0.0670 ms
+rm bin/m5_async/01_timing_trap
+
+并回答下列问题：(a) 哪个数值可以当作kernel 耗时写进报告？(b) 另外两个各具体测的是什
+么
+第三个数值，第一个是测cpulaunch的时长，第二个是测launch+kernel总时长
+```
+
+5.2
+```bash
+判断对错，可以顺带补一句理由。
+(a) 同一个 stream 里的操作按提交顺序执行。
+对
+(b) kernel 启动后，host 代码立刻继续往下执行。
+对
+(c) unified memory 下，CPU 访问一页正被 GPU 占用的内存，会触发缺页与页迁移。
+对
+```
+
+
+6.1
+```bash
+判断对错，可以顺带补一句理由。
+(a) tile 是显存里的一块可变区域，kernel 通过指针直接改写它。
+错，tile不是显存里的一块可变区域，也并非通过指针直接改写
+(b) 对 tile 的一次运算（如两个 tile 相加）由编译器映射到block 内的多个线程上执行。
+对
+(c) tile 模型与 SIMT 模型互斥，一个 CUDA 程序只能选一种
+错，tile 模型与 SIMT 模型不互斥
+```
+
+
+6.2
+```bash
+| 项目       | CUDA SIMT                     | cuTile                                               | Triton                                         |
+| -------- | ----------------------------- | ---------------------------------------------------- | ---------------------------------------------- |
+| **并行单位** | block 里的 **thread**           | block/tile                                     | program instance                           |
+| **编号**   | `blockIdx` / `threadIdx`      | ct.bid(axis)                                       | tl.program_id(axis)                          |
+| **数据分工** | thread 根据全局下标决定自己处理哪些 element | block根据bid处理一个 tile                             | program 根据pid生成offsets，处理一块数据           |
+| **边界处理** | `if (i < n)`                  | 越界 load可padding，store 越界丢弃 | mask = offsets < n，传给tl.load/tl.store|
+
+
+```
