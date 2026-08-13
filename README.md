@@ -318,9 +318,9 @@ threadIdx，blockDim，warp等
 | **block 内同步**          | **用户**    | **编译器**      | **编译器** | **用户与编译器，都有实现同步方式** |
 
 
-7.4
+7.6
 ```bash
-填完想一想：2.6的四个空——行号、列号、边界保护、grid尺寸——哪些在这里还有对应？没
-有对应的那个去哪了？
-行号列号grid尺寸仍有对应，边界处理和逐线程行列已经在copy中封装了
+填完回答——这五个空涉及到了 shared memory、寄存器 tile、流水，而 Triton 版 matmul
+（Bonus 的 kernels/matmul_triton.py）并未被显式指定，为什么？
+tilelang的控制粒度更细，triton的控制粒度较粗
 ```
