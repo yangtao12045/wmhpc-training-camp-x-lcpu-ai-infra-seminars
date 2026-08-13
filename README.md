@@ -324,3 +324,9 @@ threadIdx，blockDim，warp等
 （Bonus 的 kernels/matmul_triton.py）并未被显式指定，为什么？
 tilelang的控制粒度更细，triton的控制粒度较粗
 ```
+
+7.8
+```bash
+写完后可以试试对比一下此题与7.7：归约、边界 处理、按形状编译，二者各自是由谁处理的（用户显式处理或者编译器隐式处理）？
+归约都由编译器处理，边界处理都由用户处理，按形状编译Tilelang由用户处理，triton由编译器处理
+```
