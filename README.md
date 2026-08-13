@@ -330,3 +330,49 @@ tilelang的控制粒度更细，triton的控制粒度较粗
 写完后可以试试对比一下此题与7.7：归约、边界 处理、按形状编译，二者各自是由谁处理的（用户显式处理或者编译器隐式处理）？
 归约都由编译器处理，边界处理都由用户处理，按形状编译Tilelang由用户处理，triton由编译器处理
 ```
+
+8.1
+```bash
+判断对错，可以顺带补一句理由。
+(a) PTX 是 GPU 直接执行的机器码。
+错，PTX不是直接执行的机器码，直接执行的是SASS
+(b) 只嵌入了sm_70 SASS 的可执行文件，能在compute capability 9.0 的卡上运行。
+错，有PTX才能通过JIT在新架构运行
+(c) 一个 fatbin 可以同时携带多个架构的 SASS 和 PTX。
+对
+(d) JIT 编译由驱动在运行时完成。
+对
+```
+
+8.2
+```bash
+(a) 生成只含sm_90 SASS 的可执行文件并运行（如果你的卡本身就是computecapability9.0，
+先把ARCH_HIGH 调成 100 或更高再 make），记录报错信息。
+20534083@gj-5090-1:~/wmhpc-training-camp-x-lcpu-ai-infra-seminars/assignment01/cuda$ make sassonly/m0_env/01_hello
+./bin/m0_env/01_hello_sassonly
+nvcc -O2 -std=c++17 -I. -gencode arch=compute_90,code=sm_90 -o bin/m0_env/01_hello_sassonly m0_env/01_hello.cu
+已生成 bin/m0_env/01_hello_sassonly（只含 sm_90 的机器码）
+CUDA error cudaErrorNoKernelImageForDevice at m0_env/01_hello.cu:11: no kernel image is available for execution on the device
+
+(b) 生成只含 compute_75 PTX 的版本（CUDA 13 起 compute_70 已被移除，Makefile 默认
+取75）并运行。能正常运行吗？PTX是在什么时候、由谁编译成这块卡的机器码的？
+能，在运行时JIT将PTX编译成机器码
+```
+
+8.3
+```bash
+请简单说明Runtime API 与 Driver API 各自的定位。cudaMalloc 属于哪个？
+Runtime API更高层，一般自动处理，Driver API更底层，控制粒度更细且更复杂
+cudaMalloc属于Runtime API
+```
+
+bonus
+```bash
+BS=8  平均 0.396 ms  5423.8 GFLOPS
+PASS
+BS=16  平均 0.307 ms  7001.4 GFLOPS
+PASS
+BS=32  平均 0.364 ms  5905.9 GFLOPS
+PASS
+```
+
