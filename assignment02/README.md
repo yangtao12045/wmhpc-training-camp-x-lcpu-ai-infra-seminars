@@ -62,3 +62,30 @@ uv sync --extra tilelang
 解读报错,但每道题的实测数据必须来自你自己跑的卡,解释必须是你自己
 能答辩的。团队题(C1/C2)不设限制,怎么用 AI 都可以;答辩时问的是
 你们的决策和证据,答不上来的部分不算数。
+
+0.1
+```bash
+nvcc -O2 -std=c++17 -I. --expt-relaxed-constexpr -gencode arch=compute_100f,code=sm_100f -o bin/m0_env/01_first_mma m0_env/01_first_mma.cu ./bin/m0_env/01_first_mma D[0][0]=2 D[0][7]=2 D[15][0]=2 D[15][7]=2 PASS rm bin/m0_env/01_first_mma
+
+ARCH=120a make -B run/m0_env/01_first_mma nvcc -O2 -std=c++17 -I. --expt-relaxed-constexpr -gencode arch=compute_120a,code=sm_120a -o bin/m0_env/01_first_mma m0_env/01_first_mma.cu ./bin/m0_env/01_first_mma CUDA error cudaErrorNoKernelImageForDevice at m0_env/01_first_mma.cu:76: no kernel image is available for execution on the device make: *** [Makefile:42: run/m0_env/01_first_mma] Error 1 rm bin/m0_env/01_first_mma
+
+尝试用ARCH=120a时编译成功却运行失败。这说明生成了sm120a的机器代码，因此运行失败
+```
+
+0.2
+```bash
+采用dense，boost频率，FMA记作2FLOP
+B300每个SM有4个Tensor Core，每个 Tensor Core每周期做1024个FMA，2*4*1024=8192FLOP/cycle/SM
+
+```
+| 量                      |                                  RTX 5090 |                                                         HGX B300 |
+| ---------------------- | ----------------------------------------: | ---------------------------------------------------------------: |
+| **bf16 FLOP/cycle/SM** |                                  **1024** |                                                         **8192** |
+| **bf16 峰值**            |                          **419.5 TFLOPS** |                                                  **2250 TFLOPS** |
+| **fp8 峰值（按位宽估）**       |                          **839.1 TFLOPS** |                                                  **4500 TFLOPS** |
+| **fp4 峰值（按位宽估）**       |                         **1678.1 TFLOPS** |                                                  **9000 TFLOPS** |
+| **datasheet 对照**       | 3352 AI TOPS ≈ sparse FP4，约为 dense FP4 ×2 | BF16 dense≈2.25 PF；FP8 dense≈4.5 PF；FP4 dense=14 PF，FP4 高于简单位宽估计 |
+| **HBM/GDDR 带宽**        |                             **1792 GB/s** |                                                    **7700 GB/s** |
+| **机器平衡点（BF16）**        |                          **234.1 FLOP/B** |                                                 **292.2 FLOP/B** |
+
+
