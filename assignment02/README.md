@@ -76,16 +76,53 @@ ARCH=120a make -B run/m0_env/01_first_mma nvcc -O2 -std=c++17 -I. --expt-relaxed
 ```bash
 采用dense，boost频率，FMA记作2FLOP
 B300每个SM有4个Tensor Core，每个 Tensor Core每周期做1024个FMA，2*4*1024=8192FLOP/cycle/SM
+查询得
+SM 数量 = 148
+clocks.max.sm = 2032 MHz
+8192*148*2.032*10e9约2464TFLOPS
+由于clocks.max.sm不等同于Tensor Core频率，与datasheet存在误差
+FP4差异较大，推测是由于NVFP4路径有额外的硬件吞吐加强
+
+RTX5090约512FLOP/cycle/SM
+512*170*2.407约209.5TFLOPS
+
+FP4差异较大，也是因为RTX Blackwell Tensor Core对FP4有专门的增强
+
+根据 bf16 峰值和显存带宽计算机器平衡点（FLOP/byte），并与单条 mma 的计算强度（S016，
+m16n8k16 fp16 为 3.2 FLOP/byte）比较。思考两者之间的差距意味着什么，以及为什么后续 M2–M4
+需要从数据供给路径入手优化。
+机器平衡点较计算强度大近百倍，说明大部分时间花费在数据供给，所以需要从数据供给入手优化
 
 ```
 | 量                      |                                  RTX 5090 |                                                         HGX B300 |
 | ---------------------- | ----------------------------------------: | ---------------------------------------------------------------: |
-| **bf16 FLOP/cycle/SM** |                                  **1024** |                                                         **8192** |
-| **bf16 峰值**            |                          **419.5 TFLOPS** |                                                  **2250 TFLOPS** |
-| **fp8 峰值（按位宽估）**       |                          **839.1 TFLOPS** |                                                  **4500 TFLOPS** |
-| **fp4 峰值（按位宽估）**       |                         **1678.1 TFLOPS** |                                                  **9000 TFLOPS** |
-| **datasheet 对照**       | 3352 AI TOPS ≈ sparse FP4，约为 dense FP4 ×2 | BF16 dense≈2.25 PF；FP8 dense≈4.5 PF；FP4 dense=14 PF，FP4 高于简单位宽估计 |
-| **HBM/GDDR 带宽**        |                             **1792 GB/s** |                                                    **7700 GB/s** |
-| **机器平衡点（BF16）**        |                          **234.1 FLOP/B** |                                                 **292.2 FLOP/B** |
+| bf16 FLOP/cycle/SM |                                  512 |                                                         8192 |
+| bf16 峰值            |                         209.5TFLOPS |                                                  2464TFLOPS|
+| fp8 峰值（按位宽估）      |                         419TFLOPS |                                                  4927TFLOPS |
+| fp4 峰值（按位宽估）       |                         838TFLOPS |                                                 9855TFLOPS |
+| datasheet 对照       | BF16 209.5TF；FP8 419TF；FP4 1676TF | BF16 2250TF；FP8 4500TF；FP4 13500TF|
+| HBM/GDDR 带宽        |                             1792GB/s |                                                    7700 GB/s |
+| 机器平衡点（BF16）        |                         117FLOP/B |                                                 320 FLOP/B |
 
 
+0.3 
+```bash
+(a) 一条 mma 的计算强度，分子是 2MNK，分母按 A、B 读入与 D 写回的字节总和计 (S016 的
+口径)。
+正确，这是计算强度计算公式
+2(b) mma.sync 是 warp 级协作指令:32 个 lane 各持 fragment 的一部分，要求全 warp 一致地执行
+这条指令；有 lane 发散时行为未定义。
+正确
+(c) 增大 mma 的形状 M/N/K 能提高单条指令的计算强度，而且没有代价，所以指令形状越大越
+好。
+错误，增大形状在一定程度能提高计算强度，但tile增大会有很多代价，所以不可能越大越好
+(d) 只要单条 mma 的计算强度低于机器平衡点，GEMM kernel 就不可能逼近计算峰值。
+错误，有多种优化数据供给的方法如pipeline，因此不能认为单条 mma 的计算强度决定kernel不能达到计算峰值
+
+```
+
+1.1 01_fragment_map.cu
+```bash
+
+
+```
