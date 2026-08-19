@@ -123,6 +123,18 @@ m16n8k16 fp16 为 3.2 FLOP/byte）比较。思考两者之间的差距意味着�
 
 1.1 01_fragment_map.cu
 ```bash
+附加问题（写入报告）：A 的同一个 b32 寄存器中的 4 个 fp8 元素沿矩阵哪个方向相邻？这个
+布局对 1.4 中使用 ldmatrix load 有什么影响？
+沿列方向连续，能高效运用ldmatrix load加载数据
 
+```
+
+1.2 02_bug_fragment.cu
+```bash
+(a) 描述症状：D 的哪些位置错、错成了什么 (和对的部分是什么关系)；
+MISMATCH D[8][0]: got -1, want -11 MISMATCH D[8][1]: got -5, want 5 MISMATCH D[8][2]: got -16, want -14 MISMATCH D[8][3]: got 15, want 9
+第8行的结果实际上是第0行的结果
+(b) 修好它，并解释错的是哪个 fragment 的哪部分映射，为什么恰好产生 (a) 的症状。
+错的是A矩阵的映射，行号映射错了，导致全部都是读取的上半矩阵
 
 ```
