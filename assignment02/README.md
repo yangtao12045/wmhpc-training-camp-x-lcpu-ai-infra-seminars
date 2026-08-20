@@ -138,3 +138,5 @@ MISMATCH D[8][0]: got -1, want -11 MISMATCH D[8][1]: got -5, want 5 MISMATCH D[8
 错的是A矩阵的映射，行号映射错了，导致全部都是读取的上半矩阵
 
 ```
+
+1.3 03_mma_fp8.cu
