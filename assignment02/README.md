@@ -140,3 +140,50 @@ MISMATCH D[8][0]: got -1, want -11 MISMATCH D[8][1]: got -5, want 5 MISMATCH D[8
 ```
 
 1.3 03_mma_fp8.cu
+
+
+1.4 04_ldmatrix.cu 04_ldmatrix.ptx
+```bash
+(a) ldmatrix 省掉了手工装载中的哪些工作？
+ld.shared.u8指令读取fp8与pack成mma目标fragment的指令，寄存器使用更少
+(b) 为什么这些工作在手工装载路径中无法避免？
+mma需要固定格式的fragment，fp8元素大小和mma register粒度不一致，普通load指令没有专门为fragment layout设计
+
+
+```
+
+1.5 
+| 档位       | 预测 wavefront 比 | 实测 wavefront | 实测 conflict | 平均 cycle |
+| -------- | -------------: | -----------: | ----------: | -------: |
+| 32 B     |             2× |        16384 |        8192 |     9.72 |
+| 64 B     |             4× |        32768 |       24576 |    10.75 |
+| 128 B    |             8× |        65536 |       57344 |    16.06 |
+| 128+16 B |             1× |         8192 |           0 |     9.23 |
+
+```bash
+比较预测与实测结果：哪一种行跨度使 wavefront 数增加到 4 倍？wavefront 的比例应与 bank
+模型一致，但实际耗时的差距通常没有这么大。结合 8 个 warp 的占用情况，解释为什么 wavefront
+增加 4 倍并不会使总耗时也增加 4 倍。
+64B使wavefront数增加到4倍
+因为occupancy足够高，内存延迟被上下文切换掩盖，所以没有线性增长
+
+
+```
+
+
+2.1
+```bash
+wgmma.mma_async
+st.shared
+wgmma.commit_group
+fence.proxy.async
+wgmma.fence
+wgmma.wait_group
+
+wgmma.fence确保warp group到达同步点
+st.shared防止wgmma提前读取shm
+fence.proxy.async避免读写跨代理乱序
+wgmma.mma_async发射异步mma，计算访存重叠
+wgmma.commit_group防止group管理与maa发射混乱
+wgmma.wait_group防止maa完成前提前读取结果
+```
