@@ -182,8 +182,18 @@ wgmma.wait_group
 
 wgmma.fence确保warp group到达同步点
 st.shared防止wgmma提前读取shm
-fence.proxy.async避免读写跨代理乱序
+fence.proxy.async避免读写shm跨代理乱序
 wgmma.mma_async发射异步mma，计算访存重叠
 wgmma.commit_group防止group管理与maa发射混乱
 wgmma.wait_group防止maa完成前提前读取结果
+
+(b) 判断下列说法是否正确，并给出一句理由。
+1. fence.proxy.async 是 wgmma 专属的指令，TMA 与 tcgen05 的场景不需要它。
+错，fence.proxy.async是proxy关键同步机制，TMA 与 tcgen05也需要使用
+2. wgmma.commit_group 会阻塞，直到它之前发射的 wgmma 全部完成。
+错，只提交，不会阻塞
+3. 不加 fence.proxy.async 时，wgmma 可能读到 shared memory 中的旧值，因为 st.shared 的
+写经过 generic proxy，而 wgmma 的读经过 async proxy。
+对
+
 ```
