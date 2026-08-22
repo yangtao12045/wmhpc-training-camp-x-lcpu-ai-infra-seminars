@@ -28,12 +28,51 @@ __device__ void load_manual(const uint8_t* sA, const uint8_t* sBk,
                             const uint8_t* sBn, unsigned (&a)[4],
                             unsigned (&b)[2]) {
     (void)sA; (void)sBk; (void)sBn; (void)a; (void)b;
+    int lane=threadIdx.x;
+    int group=lane>>2;
+    int tig=lane&3;
+
+    a[0]=((unsigned)sA[group*32+tig*4+0])|((unsigned)sA[group*32+tig*4+1]<<8)|((unsigned)sA[group*32+tig*4+2]<<16)|((unsigned)sA[group*32+tig*4+3]<<24);
+    a[1]=((unsigned)sA[(group+8)*32+tig*4+0])|((unsigned)sA[(group+8)*32+tig*4+1]<<8)|((unsigned)sA[(group+8)*32+tig*4+2]<<16)|((unsigned)sA[(group+8)*32+tig*4+3]<<24);
+    a[2]=((unsigned)sA[(group)*32+tig*4+16])|((unsigned)sA[(group)*32+tig*4+17]<<8)|((unsigned)sA[(group)*32+tig*4+18]<<16)|((unsigned)sA[(group)*32+tig*4+19]<<24);
+    a[3]=((unsigned)sA[(group+8)*32+tig*4+16])|((unsigned)sA[(group+8)*32+tig*4+17]<<8)|((unsigned)sA[(group+8)*32+tig*4+18]<<16)|((unsigned)sA[(group+8)*32+tig*4+19]<<24);
+
+
+    b[0]=((unsigned)sBk[(tig*4+0)*8+group])|((unsigned)sBk[(tig*4+1)*8+group]<<8)|((unsigned)sBk[(tig*4+2)*8+group]<<16)|((unsigned)sBk[(tig*4+3)*8+group]<<24);
+    b[1]=((unsigned)sBk[(tig*4+16)*8+group])|((unsigned)sBk[(tig*4+17)*8+group]<<8)|((unsigned)sBk[(tig*4+18)*8+group]<<16)|((unsigned)sBk[(tig*4+19)*8+group]<<24);
 }
 
 __device__ void load_ldsm(const uint8_t* sA, const uint8_t* sBk,
                           const uint8_t* sBn, unsigned (&a)[4],
                           unsigned (&b)[2]) {
     (void)sA; (void)sBk; (void)sBn; (void)a; (void)b;
+    int lane=threadIdx.x;
+    int matrixA=lane>>3;
+    int rowA=lane&7;
+    int mBase=(matrixA&1)*8;
+    int kBase=(matrixA>>1)*16;
+
+    uint32_t addrA=(uint32_t)__cvta_generic_to_shared(sA+(mBase+rowA)*32+kBase);
+
+    asm volatile(
+        "ldmatrix.sync.aligned.m8n8.x4.shared.b16 "
+        "{%0,%1,%2,%3},[%4];\n"
+        : "=r"(a[0]), "=r"(a[1]), "=r"(a[2]), "=r"(a[3])
+        : "r"(addrA)
+    );
+
+    int rowB=lane&7;
+    int matrixB=(lane>>3)&1;
+    int kBaseB=matrixB*16;
+
+    uint32_t addrB=(uint32_t)__cvta_generic_to_shared(sBn+rowB*32+kBaseB);
+
+    asm volatile(
+        "ldmatrix.sync.aligned.m8n8.x2.shared.b16 "
+        "{%0,%1},[%2];\n"
+        : "=r"(b[0]), "=r"(b[1])
+        : "r"(addrB)
+    );
 }
 
 template <bool USE_LDSM>
