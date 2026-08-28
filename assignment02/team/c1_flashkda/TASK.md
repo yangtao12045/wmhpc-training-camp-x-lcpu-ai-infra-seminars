@@ -148,3 +148,12 @@ Saturated throughput
 7.680 billion inverse/s
 0.130206 ns/inverse（全 GPU reciprocal throughput）
 ```
+
+| 路径           | ns/matrix | ns/token | 同CHUNK相对 raw |
+| ------------ | --------: | -------: | -----------: |
+| raw C16      |     4.013 |   0.2508 |        1.00× |
+| raw C32      |     7.756 |   0.2424 |        1.00× |
+| balanced C32 |    13.267 |   0.4146 |    **1.71×** |
+| raw C64      |    15.130 |   0.2364 |        1.00× |
+| balanced C64 |    39.223 |   0.6129 |    **2.59×** |
+
