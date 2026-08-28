@@ -125,3 +125,13 @@ varlen shape=[8192,64,128] seq_lens=[1024, 1024, 1024, 1024, 1024, 1024, 1024, 1
           The 3.00 theoretical warps per scheduler this kernel can issue according to its occupancy are below the
           hardware maximum of 16. This kernel's theoretical occupancy (18.8%) is limited by the required amount of
 ```
+| CHUNK |  gate | decay 首次 zero | restore 首次 inf | 判断                  |
+| ----: | ----: | ------------: | -------------: | ------------------- |
+|    16 |    -5 |             无 |              无 | 最坏 lower bound 下仍安全 |
+|    16 | -4/-2 |             无 |              无 | 安全                  |
+|    32 |    -5 |            18 |             18 | 严重失败                |
+|    32 |    -4 |            22 |             23 | 失败                  |
+|    32 |    -2 |             无 |              无 | 此分布下安全              |
+|    64 |    -5 |            18 |             18 | 严重失败                |
+|    64 |    -4 |            22 |             23 | 严重失败                |
+|    64 |    -2 |            44 |             45 | 中等负 gate 也失败        |
