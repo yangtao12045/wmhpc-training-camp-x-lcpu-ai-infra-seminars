@@ -60,3 +60,41 @@ wgmma(SM90)或 tcgen05(SM100)——在 GB200/B300 上运行时同样如此。
   24 层全注意力);官方 benchmark 的 `T=8192, H=96, D=128` 即此,
   H=64 组只是附加对照形状。注意 TP 部署下每卡头数是 96/TP(TP8 为
   12)——讨论并行度时用每卡数;GEMM 侧形状见 assignment 4.5。
+
+  ```bash
+  flash_kda (bf16 state) : mean=1.7469 ms, min=1.7413 ms, max=1.8456 ms
+  flash_kda (no state)   : mean=1.7525 ms, min=1.7475 ms, max=1.7960 ms
+  flash_kda (fp32 state) : mean=1.7115 ms, min=1.6994 ms, max=3.7646 ms
+  chunk_kda : mean=3.5656 ms, min=3.5446 ms, max=5.7096 ms
+  chunk_gated_delta_rule : mean=1.9585 ms, min=1.9480 ms, max=2.1401 ms
+varlen shape=[8192,96,128] seq_lens=[1300, 547, 2048, 963, 271, 3063] warmup=30 iters=200 repeats=5
+  flash_kda (bf16 state) : mean=1.4734 ms, min=1.4035 ms, max=1.6886 ms
+  flash_kda (no state)   : mean=1.4734 ms, min=1.3933 ms, max=1.5633 ms
+  flash_kda (fp32 state) : mean=1.4914 ms, min=1.4219 ms, max=1.7438 ms
+  chunk_kda : mean=3.6618 ms, min=3.6388 ms, max=5.7584 ms
+  chunk_gated_delta_rule : mean=1.9529 ms, min=1.9440 ms, max=2.1179 ms
+varlen shape=[8192,96,128] seq_lens=[1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024] warmup=30 iters=200 repeats=5
+  flash_kda (bf16 state) : mean=1.1887 ms, min=1.1810 ms, max=3.2783 ms
+  flash_kda (no state)   : mean=1.1840 ms, min=1.1780 ms, max=3.1566 ms
+  flash_kda (fp32 state) : mean=1.2115 ms, min=1.2069 ms, max=1.3951 ms
+  chunk_kda : mean=3.5601 ms, min=3.5446 ms, max=5.6059 ms
+  chunk_gated_delta_rule : mean=1.8609 ms, min=1.8499 ms, max=2.0170 ms
+shape=[8192,64,128] warmup=30 iters=200 repeats=5
+  flash_kda (bf16 state) : mean=1.5971 ms, min=1.5919 ms, max=1.7206 ms
+  flash_kda (no state)   : mean=1.6043 ms, min=1.5998 ms, max=1.6693 ms
+  flash_kda (fp32 state) : mean=1.5527 ms, min=1.5486 ms, max=1.6779 ms
+  chunk_kda : mean=2.4322 ms, min=2.4212 ms, max=2.6233 ms
+  chunk_gated_delta_rule : mean=1.3334 ms, min=1.3162 ms, max=3.4555 ms
+varlen shape=[8192,64,128] seq_lens=[1300, 547, 2048, 963, 271, 3063] warmup=30 iters=200 repeats=5
+  flash_kda (bf16 state) : mean=1.1149 ms, min=1.1063 ms, max=3.1525 ms
+  flash_kda (no state)   : mean=1.1125 ms, min=1.1066 ms, max=1.1823 ms
+  flash_kda (fp32 state) : mean=1.1237 ms, min=1.1166 ms, max=1.1779 ms
+  chunk_kda : mean=2.5693 ms, min=2.5495 ms, max=3.2710 ms
+  chunk_gated_delta_rule : mean=1.4233 ms, min=1.4127 ms, max=2.0525 ms
+varlen shape=[8192,64,128] seq_lens=[1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024] warmup=30 iters=200 repeats=5
+  flash_kda (bf16 state) : mean=0.8022 ms, min=0.7985 ms, max=1.0428 ms
+  flash_kda (no state)   : mean=0.7998 ms, min=0.7962 ms, max=1.0348 ms
+  flash_kda (fp32 state) : mean=0.8201 ms, min=0.8156 ms, max=1.0683 ms
+  chunk_kda : mean=2.3673 ms, min=2.3506 ms, max=2.5848 ms
+  chunk_gated_delta_rule : mean=1.2553 ms, min=1.2467 ms, max=1.6876 ms
+  ```
