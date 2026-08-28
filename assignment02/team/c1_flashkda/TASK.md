@@ -98,3 +98,30 @@ varlen shape=[8192,64,128] seq_lens=[1024, 1024, 1024, 1024, 1024, 1024, 1024, 1
   chunk_kda : mean=2.3673 ms, min=2.3506 ms, max=2.5848 ms
   chunk_gated_delta_rule : mean=1.2553 ms, min=1.2467 ms, max=1.6876 ms
 ```
+
+```bash
+
+    Duration                         us       272.90
+          Whenever possible, try to divide up the work into blocks of uniform workloads. If the block size is 512
+          affecting occupancy, unless shared memory becomes a new occupancy limiter. Also, try to identify which
+    Block Size                                                   256
+    Grid Size                                                  49152
+    Waves Per SM                                               41.51
+    Section: Occupancy
+    Overall GPU Occupancy                     %            0
+    Cluster Occupancy                         %            0
+    Theoretical Occupancy                     %          100
+    Achieved Occupancy                        %        96.54
+    Duration                         us       748.45
+    Block Size                                                   192
+    Grid Size                                                     96
+    Waves Per SM                                                0.32
+          concurrently with other workloads, consider reducing the block size to have at least one block per
+    Section: Occupancy
+    Overall GPU Occupancy                     %            0
+    Cluster Occupancy                         %            0
+    Theoretical Occupancy                     %        18.75
+    Achieved Occupancy                        %         9.37
+          The 3.00 theoretical warps per scheduler this kernel can issue according to its occupancy are below the
+          hardware maximum of 16. This kernel's theoretical occupancy (18.8%) is limited by the required amount of
+```
