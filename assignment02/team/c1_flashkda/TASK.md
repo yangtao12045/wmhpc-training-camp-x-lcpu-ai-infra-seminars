@@ -135,3 +135,16 @@ varlen shape=[8192,64,128] seq_lens=[1024, 1024, 1024, 1024, 1024, 1024, 1024, 1
 |    64 |    -5 |            18 |             18 | 严重失败                |
 |    64 |    -4 |            22 |             23 | 严重失败                |
 |    64 |    -2 |            44 |             45 | 中等负 gate 也失败        |
+
+
+```bash
+Single-warp
+164.456 ns/inverse
+6.081 million inverse/s
+
+这是单 CTA、单 warp、重复调用后的 steady-state 延迟代理。它摊薄了 global memory 和 kernel launch，但各次 inverse 没有跨 iteration 数据依赖，因此不要称为严格的 dependent latency。
+
+Saturated throughput
+7.680 billion inverse/s
+0.130206 ns/inverse（全 GPU reciprocal throughput）
+```
