@@ -61,7 +61,7 @@ wgmma(SM90)或 tcgen05(SM100)——在 GB200/B300 上运行时同样如此。
   H=64 组只是附加对照形状。注意 TP 部署下每卡头数是 96/TP(TP8 为
   12)——讨论并行度时用每卡数;GEMM 侧形状见 assignment 4.5。
 
-  ```bash
+```bash
   flash_kda (bf16 state) : mean=1.7469 ms, min=1.7413 ms, max=1.8456 ms
   flash_kda (no state)   : mean=1.7525 ms, min=1.7475 ms, max=1.7960 ms
   flash_kda (fp32 state) : mean=1.7115 ms, min=1.6994 ms, max=3.7646 ms
@@ -97,4 +97,4 @@ varlen shape=[8192,64,128] seq_lens=[1024, 1024, 1024, 1024, 1024, 1024, 1024, 1
   flash_kda (fp32 state) : mean=0.8201 ms, min=0.8156 ms, max=1.0683 ms
   chunk_kda : mean=2.3673 ms, min=2.3506 ms, max=2.5848 ms
   chunk_gated_delta_rule : mean=1.2553 ms, min=1.2467 ms, max=1.6876 ms
-  ```
+```
