@@ -157,3 +157,11 @@ Saturated throughput
 | raw C64      |    15.130 |   0.2364 |        1.00× |
 | balanced C64 |    39.223 |   0.6129 |    **2.59×** |
 
+
+
+| 场景                      |     1 CTA |     2 CTA | speedup | 结论     |
+| ----------------------- | --------: | --------: | ------: | ------ |
+| 96 chains，compute-only  |  5.671 ms |  5.968 ms |  0.950× | 慢5.2%  |
+| 96 chains，streamed      | 10.460 ms | 11.738 ms |  0.891× | 慢12.2% |
+| 768 chains，compute-only | 21.719 ms | 34.530 ms |  0.629× | 慢59.0% |
+| 768 chains，streamed     | 34.991 ms | 68.790 ms |  0.509× | 慢96.6% |
