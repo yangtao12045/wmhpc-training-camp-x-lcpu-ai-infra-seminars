@@ -1,28 +1,24 @@
-// 问题 2.3:三种 swizzle 模式的地址映射。
-//
-// 输入:元素的逻辑坐标(atom 内行号 row、行内字节偏移 colByte),
-// 输出:atom 内的物理字节偏移。三种模式的 atom 尺寸:
-//   128B swizzle:8 行 x 128B;64B:8 行(取 4 行一周期)x 64B;
-//   32B:8 行(2 行一周期)x 32B。
-// 课上 S064 推的是 128B 的地址位异或;64B/32B 的参与位段自己从
-// PTX ISA 的 swizzling 一节推。16B 以内的低位永远直通。
-//
-// 判测(纯 host,无卡):
-//   1) 双射:atom 内所有 (row, colByte) 的输出恰好铺满 atom 且无碰撞;
-//   2) 列访问无冲突:固定逻辑 16B chunk 下标 j,遍历一个周期内的行,
-//      物理 chunk 必须两两不同(descriptor 路径按列取数的要求;
-//      单纯 padding 或恒等映射会在这里现形)。
-// 运行:make run/m2_smem/03_swizzle
-//
-// 你的 swizzle_128B 会在 3.2 里直接用于 smem staging——那里是真硬件
-// 判测:布局错,GEMM 结果必错。
-#include <cstdio>
 #include <cstring>
 
 // TODO: 实现三个映射。
-static int swizzle_128B(int row, int colByte) { (void)row; return colByte; }
-static int swizzle_64B(int row, int colByte) { (void)row; return colByte; }
-static int swizzle_32B(int row, int colByte) { (void)row; return colByte; }
+static int swizzle_128B(int row, int colByte) { 
+    int low=colByte&0xf;
+    int chunk=colByte>>4;
+    int phys=chunk^(row&0x7);
+    return row*128+(phys<<4)+low;
+ }
+static int swizzle_64B(int row, int colByte) { 
+    int low=colByte&0xf;
+    int chunk=colByte>>4;
+    int phys=chunk^(row&0x3);
+    return row*64+(phys<<4)+low;
+ }
+static int swizzle_32B(int row, int colByte) { 
+    int low=colByte&0xf;
+    int chunk=colByte>>4;
+    int phys=chunk^(row&0x1);
+    return row*32+(phys<<4)+low;
+ }
 
 // 以下为判测,不需要修改。
 static int check_mode(const char* name, int (*fn)(int, int), int rowBytes,
