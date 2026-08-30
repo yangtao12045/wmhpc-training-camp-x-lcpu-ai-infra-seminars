@@ -197,3 +197,10 @@ wgmma.wait_group防止maa完成前提前读取结果
 对
 
 ```
+
+2.2
+```bash
+场景 2 和场景 3 最终得到的 descriptor 相同。在报告中回答：MN-major 与 K-major 的区别 体现在哪里？
+区别在b_major位表示，b_major=0表示K-major，b_major=1表示MN-major。
+
+```
