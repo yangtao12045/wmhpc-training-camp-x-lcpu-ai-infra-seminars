@@ -198,9 +198,30 @@ wgmma.wait_group防止maa完成前提前读取结果
 
 ```
 
-2.2
+2.2 02_descriptor.cu
 ```bash
 场景 2 和场景 3 最终得到的 descriptor 相同。在报告中回答：MN-major 与 K-major 的区别 体现在哪里？
 区别在b_major位表示，b_major=0表示K-major，b_major=1表示MN-major。
+
+```
+
+2.3 03_swizzle.cu
+
+3.1
+```bash
+(a) tcgen05.ld 读取 TMEM 时，每个 warp 只能读取自己对应的 32 条 lane，warp 之间不能互相
+读取。
+对
+(b) 与 mma.sync 由 warp 协作、wgmma 由 warpgroup 协作不同，tcgen05.mma 由单个线程发射，
+随后由硬件异步执行。
+对
+(c) TMEM 中的累加结果可以直接通过 TMA 搬回 global memory，不需要经过寄存器。
+错，accumulator需要通过寄存器才能搬回global memory
+(d) TMEM 每个 SM 包含 128 lane × 512 column × 4 B；一个 m128n256 的 f32 accumulator 恰
+好占用其中一半。
+对，128*256*4=1/2*(128*256*4(sizeof(float)))
+(e) tcgen05.commit 会阻塞直到之前发射的 mma 全部完成，因此 commit 返回后即可安全读取
+TMEM
+错，commit不会阻塞maa完成，需要等待追踪的mbarrier完成才能完全读取
 
 ```
