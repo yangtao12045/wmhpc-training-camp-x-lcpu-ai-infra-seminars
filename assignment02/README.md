@@ -225,3 +225,5 @@ TMEM
 错，commit不会阻塞maa完成，需要等待追踪的mbarrier完成才能完全读取
 
 ```
+
+3.2 02_single_tile.cu
