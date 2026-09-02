@@ -227,3 +227,9 @@ TMEM
 ```
 
 3.2 02_single_tile.cu
+
+4.1 01_tiled.cu
+
+4.2 02_tma.cu
+
+4.3 03_pipeline.cu
